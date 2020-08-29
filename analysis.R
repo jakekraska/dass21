@@ -26,14 +26,14 @@ require(parallel) # version 4.0.2
 ################# Set Options #################
 #---                                       ---#
 
-set.seed(2019)
-options(max.print=3000)
+set.seed(2019) # set the seed so that randomised outcomes are the same across analyses
+options(max.print = 3000) # enable the console to print more lines
 
 #---                                     ---#
 ################# Functions  #################
 #---                                     ---#
 
-calculate_sem <- function(rxx,sd) {sd * sqrt(1-rxx)} # calculates sem
+calculate_sem <- function(rxx,sd) {sd * sqrt(1-rxx)} # creates a function that calculates sem
 
 cat_simulation <- function(model, sem, pattern = NULL) {
   
@@ -75,50 +75,50 @@ cat_simulation <- function(model, sem, pattern = NULL) {
 ################# Simulation Data #################
 #---                                          ---#
 
-reliability <- c(seq(from = 1.0, to = .50, by = -.1))
-sem <- calculate_sem(reliability,1)
-Theta_groups <- seq(-3,3,.6)
+reliability <- c(seq(from = 1.0, to = .50, by = -.1)) # create levels of reliability
+sem <- calculate_sem(reliability,1) # calculate SEM associated with each level of reliability
+Theta_groups <- seq(-3,3,.6) # create theta groups for comparison of performance
 
 #---                                      ---#
 ################# Import Data #################
 #---                                      ---#
 
-data <- read.csv("data.csv", stringsAsFactors = FALSE)
+data <- read.csv("data.csv", stringsAsFactors = FALSE) # load the data
 
 #---                                       ---#
 ################# Split Data #################
 #---                                      ---#
 
-sample.split <- 0.70
+sample.split <- 0.70 # set the percentage of the data that will be used for analysis
 ind <- sample(c(rep(TRUE,ceiling(nrow(data)*sample.split)),rep(FALSE,floor(nrow(data)*(1-sample.split)))))
-data <- cbind(data,ind)
+data <- cbind(data,ind) # identify which rows will be kept for analysis
 
 #---                                          ---#
 ################# Rename Columns #################
 #---                                          ---#
 
-names(data)[names(data) == "SEX"] <- "Gender"
-names(data)[names(data) == "EMPLOY1"] <- "Employment"
-names(data)[names(data) == "QUAL_GRP"] <- "Qualification"
-names(data)[names(data) == "AGE"] <- "Age"
-names(data)[names(data) == "ind"] <- "Sample"
+names(data)[names(data) == "SEX"] <- "Gender" #change the SEX column to Gender
+names(data)[names(data) == "EMPLOY1"] <- "Employment" # Change the EMPLOY1 column to Employment
+names(data)[names(data) == "QUAL_GRP"] <- "Qualification" # Change the QUAL_GRP column to Qualification
+names(data)[names(data) == "AGE"] <- "Age" # Change the AGE column to Age
+names(data)[names(data) == "ind"] <- "Sample" # Change the ind column to Sample
 
 #---                                             ---#
 ################# Recode Data Types #################
 #---                                            ---#
 
-data$Gender <- as.character(data$Gender)
-data$Employment <- as.character(data$Employment)
-data$Qualification <- as.character(data$Qualification)
-data$Sample <- as.character(data$Sample)
+data$Gender <- as.character(data$Gender) # recode the variable as type "character"
+data$Employment <- as.character(data$Employment) # recode the variable as type "character"
+data$Qualification <- as.character(data$Qualification) # recode the variable as type "character"
+data$Sample <- as.character(data$Sample) # recode the variable as type "character"
 
 #---                                                      ---#
 ################# Remove Unnecessary Columns #################
 #---                                                     ---#
 
-data$ï..ID <- NULL
-data$V1 <- NULL
-data$ZIP <- NULL
+data$ï..ID <- NULL # remove variable
+data$V1 <- NULL # remove variable
+data$ZIP <- NULL # remove variable
 
 ## Recode Demographics ##
 
@@ -159,6 +159,8 @@ data$AgeGroup <- recode(data$AgeGroup,
 ################# Calculate Totals #################
 #---                                            ---#
 
+# calculate a total score
+
 data <- mutate(
   data,
   dep = DEP1 + DEP2 + DEP3 + DEP4 + DEP5 + DEP6 + DEP7,
@@ -171,20 +173,28 @@ data <- mutate(
 ################# Setup Items and Data #################
 #---                                                ---#
 
+# create variables that contain the item names
+
 all.items <- names(select(data, contains("DEP", ignore.case = FALSE), contains("ANX", ignore.case = FALSE), contains("STR", ignore.case = FALSE)))
 dep.items <- names(select(data, contains("DEP", ignore.case = FALSE)))
 anx.items <- names(select(data, contains("ANX", ignore.case = FALSE)))
 str.items <- names(select(data, contains("STR", ignore.case = FALSE)))
+
+# create data frames that have data for each scale
 
 all.data <- select(data, all_of(all.items))
 dep.data <- select(data, all_of(dep.items))
 anx.data <- select(data, all_of(anx.items))
 str.data <- select(data, all_of(str.items))
 
+# create data frames that have data for each scale but only for the evaluation data
+
 all.eval <- select(filter(data, Sample == "evaluation"), all_of(all.items))
 dep.eval <- select(filter(data, Sample == "evaluation"), all_of(dep.items))
 anx.eval <- select(filter(data, Sample == "evaluation"), all_of(anx.items))
 str.eval <- select(filter(data, Sample == "evaluation"), all_of(str.items))
+
+# create data frames that have data for each scale but only for the validation data
 
 all.vali <- select(filter(data, Sample == "validation"), all_of(all.items))
 dep.vali <- select(filter(data, Sample == "validation"), all_of(dep.items))
@@ -196,6 +206,8 @@ str.vali <- select(filter(data, Sample == "validation"), all_of(str.items))
 #---                                        ---#
 
 ## ICC by difficulty ##
+
+# create an ICC plot that shows different item characteristic curves based on difficulty
 
 items.by.difficulty <- cbind(c(1,1,1,1,1),c(-2,-1,0,1,2))
 
@@ -225,6 +237,8 @@ rm(items.by.difficulty,items,i,theta,longer.format,twopl)
 
 ## ICC by Discrimination ##
 
+# create an ICC plot that shows different item characteristic curves based on discrimination
+
 items.by.discrimination <- cbind(c(.1, .5, 1, 5),c(0, 0, 0, 0))
 
 twopl <- function(a, b, theta){
@@ -252,6 +266,8 @@ ggplot(longer.format, aes(theta, measurement, colour=item)) +
 rm(items.by.discrimination,items,i,theta,longer.format,twopl)
 
 ## ICC with Difficulty Line ##
+
+# create an ICC plot that shows a 50% probability - i.e. the item difficulty
 
 items.by.difficulty <- cbind(c(1),c(-1))
 
@@ -419,20 +435,20 @@ ggsave("plots/Figure 6 - Scale Scores by Age.png")
 ################# Sample Independence #################
 #---                                               ---#
 
-t.test(data$tot~data$Sample)
-t.test(data$dep~data$Sample)
-t.test(data$anx~data$Sample)
-t.test(data$str~data$Sample)
-t.test(data$Age~data$Sample)
+t.test(data$tot~data$Sample) # t test to test differences in total score between samples
+t.test(data$dep~data$Sample) # t test to test differences in depression score between samples
+t.test(data$anx~data$Sample) # t test to test differences in anxiety score between samples
+t.test(data$str~data$Sample) # t test to test differences in stress score between samples
+t.test(data$Age~data$Sample) # t test to test differences in age between samples
 
 #---                                        ---#
 ################# Reliability #################
 #---                                        ---#
 
-psych::alpha(all.eval)
-psych::alpha(dep.eval)
-psych::alpha(anx.eval)
-psych::alpha(str.eval)
+psych::alpha(all.eval) # calculate cronbachs alpha for total scale
+psych::alpha(dep.eval) # calculate cronbachs alpha for depression scale
+psych::alpha(anx.eval) # calculate cronbachs alpha for anxiety scale
+psych::alpha(str.eval) # calculate cronbachs alpha for stress scale
 
 #---                                                ---#
 ################# CFA Model Comparisons #################
@@ -585,11 +601,11 @@ rm(model.a1.fit, model.b1.fit, model.b2.fit, model.c1.fit, model.c2.fit, model.d
 ################# Mokken Total Scale #################
 #---                                             ---#
 
-all.mokken <- coefH(all.eval)
-all.mokken$Hi #check the Loevinger's H values (>.3 is ok, >.5 is excellent)
-all.mokken$H #check the Loevinger's H values (>.3 is ok, >.5 is excellent)
-all.aisp <- aisp(all.eval)
-all.aisp 
+all.mokken <- coefH(all.eval) # conduct mokken analysis for total scale
+all.mokken$Hi # check the Loevinger's H values (>.3 is ok, >.5 is excellent)
+all.mokken$H # check the Loevinger's H values (>.3 is ok, >.5 is excellent)
+all.aisp <- aisp(all.eval) # conduct the automatic item selection for the total scale
+all.aisp  # print results of automatic item selection
 
 #---                                ---#
 ################# MIRT #################
@@ -597,21 +613,24 @@ all.aisp
 
 # bfactor(data = all.eval, model = c(rep(1,7),rep(2,7),rep(3,7))) # fails even with 2000 EM cycles, need more data
 
-
 #---                                           ---#
 ################# DIF Preparation #################
 #---                                          ---#
 
+# load data for dif
 dif.data <- filter(data, Sample == "evaluation")
 
+# 
 dif.data$Gender <- dif.data$Gender
 
+# Collapse employment categories
 dif.data$Employment <- recode(dif.data$Employment,
                      "Student" = "Unemployed",
                      "Employed" = "Employed",
                      "Unemployed" = "Unemployed",
                      "Retired" = "Unemployed")
 
+#
 dif.data$Qualification <- recode(dif.data$Qualification,
                         "Secondary School Incomplete" = "Non Tertiary",
                         "TAFE" = "Tertiary",
@@ -1080,4 +1099,3 @@ for (i in 1:(length(Theta_groups)+1)) {
 }
 str.sim.groups <- bind_rows(str.sim.groups)
 str.sim.groups
-
