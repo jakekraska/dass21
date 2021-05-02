@@ -8,19 +8,20 @@
 ################# Load Packages #################
 #---                                        ---#
 
+require(car) # version 3.0-10
 require(plyr) # version 1.8.6
-require(ggplot2) # version 3.3.2
-require(psych) # version 2.0.7
-require(knitr) # version 1.29
-require(lavaan) # version 0.6-7
-require(mirt) # version 1.32.1
-require(mirtCAT) # version 1.10
-require(mokken) # version 3.0.2
-require(dplyr) # version 1.0.1
-require(tidyr) # version 1.1.1
+require(ggplot2) # version 3.3.3
+require(psych) # version 2.1.3
+require(knitr) # version 1.32
+require(lavaan) # version 0.6-8
+require(mirt) # version 1.33.8
+require(mirtCAT) # version 1.10.4
+require(mokken) # version 3.0.6
+require(dplyr) # version 1.0.5
+require(tidyr) # version 1.1.3
 require(latticeExtra) # version 0.6-29
 require(irtDemo) # version 0.1.4
-require(parallel) # version 4.0.2
+require(parallel) # version 4.0.5
 
 #---                                       ---#
 ################# Set Options #################
@@ -429,16 +430,28 @@ select(filter(data, Sample == "evaluation"), AgeGroup, dep, anx, str) %>%
   scale_color_discrete(name = "Scale") +
   theme(legend.position = "bottom")
 ggsave("plots/Figure 6 - Scale Scores by Age.png")
+
   
 #---                                               ---#
 ################# Sample Independence #################
 #---                                               ---#
 
-t.test(data$tot~data$Sample) # t test to test differences in total score between samples
-t.test(data$dep~data$Sample) # t test to test differences in depression score between samples
-t.test(data$anx~data$Sample) # t test to test differences in anxiety score between samples
-t.test(data$str~data$Sample) # t test to test differences in stress score between samples
-t.test(data$Age~data$Sample) # t test to test differences in age between samples
+data$Sample <- as.factor(data$Sample)
+
+leveneTest(tot ~ Sample, data = data)
+t.test(formula = tot ~ Sample, data = data) # t test to test differences in total score between samples
+
+leveneTest(dep ~ Sample, data = data)
+t.test(formula = dep ~ Sample, data = data) # t test to test differences in depression score between samples
+
+leveneTest(anx ~ Sample, data = data)
+t.test(formula = anx ~ Sample, data = data) # t test to test differences in anxiety score between samples
+
+leveneTest(str ~ Sample, data = data)
+t.test(formula = str ~ Sample, data = data) # t test to test differences in stress score between samples
+
+leveneTest(Age ~ Sample, data = data)
+t.test(formula = Age ~ Sample, data = data) # t test to test differences in age between samples
 
 #---                                        ---#
 ################# Reliability #################
@@ -585,6 +598,7 @@ fitMeasures(model.e2.fit, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srm
 anova(model.e1.fit, model.e2.fit)
 
 # Compare the model fit for the eval sample and the vali sample
+model.e2.fit.vali <- cfa(model.e2, data = all.vali, std.lv = TRUE, ordered = c(all.items))
 fitMeasures(model.e2.fit.vali, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr"))
 
 # Parameter Estimates (this model used because it is more parsimonious)
@@ -610,7 +624,7 @@ all.aisp  # print results of automatic item selection
 ################# MIRT #################
 #---                                ---#
 
-# bfactor(data = all.eval, model = c(rep(1,7),rep(2,7),rep(3,7))) # fails even with 2000 EM cycles, need more data
+bfactor(data = all.eval, model = c(rep(1,7),rep(2,7),rep(3,7))) # fails even with 2000 EM cycles, need more data
 
 #---                                           ---#
 ################# DIF Preparation #################
