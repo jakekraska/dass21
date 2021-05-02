@@ -430,7 +430,6 @@ select(filter(data, Sample == "evaluation"), AgeGroup, dep, anx, str) %>%
   theme(legend.position = "bottom")
 ggsave("plots/Figure 6 - Scale Scores by Age.png")
   
-
 #---                                               ---#
 ################# Sample Independence #################
 #---                                               ---#
